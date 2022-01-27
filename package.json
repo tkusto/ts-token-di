@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublish": "NODE_ENV=production tsc --project tsconfig.json"
   },
   "author": "Taras Kustov <tkusto@gmail.com>",
   "license": "MIT",
