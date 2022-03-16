@@ -1,6 +1,8 @@
+import { Token } from './types';
+
 export class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(token: string) {
+    super(`There is no provider for "${token}"`);
     this.name = 'NotFoundError';
   }
 }
