@@ -1,64 +1,68 @@
-import { RegistryProperty } from './RegistryProperty';
+import { registryProperty } from './constants';
+import { NotFoundError } from './errors';
 import type {
   Ctor,
-  DIContainer,
-  DIToken,
-  FlattenUnion,
-  Merge,
+  Container,
+  Token,
+  Union,
+  Join,
   Registry,
-  Resolve,
-  ResolvedDeps,
-  ResolveType,
-} from './DIContainer';
+  Factory,
+  FactoryArgs,
+  FactoryType,
+} from './types';
+import { merge } from './utils';
 
-export class Module<R extends Registry> implements DIContainer<R> {
+export class Module<R extends Registry> implements Container<R> {
   constructor(
     private readonly registry: R
   ) { }
 
-  add<T extends DIToken, D extends (keyof R)[], V, RF extends Resolve<R, D, V>>(
+  provide<T extends Token, D extends (keyof R)[], V, RF extends Factory<R, D, V>>(
     token: T,
-    deps: [...D],
-    resolve: RF
-  ): Module<FlattenUnion<R & { [K in T]: { resolve: RF, deps: [...D] } }>> {
+    inject: [...D],
+    factory: RF
+  ): Module<Union<R & { [K in T]: { factory: RF, inject: [...D] } }>> {
     const registry: unknown = {
       ...this.registry,
-      [token]: { resolve, deps }
+      [token]: { factory, inject }
     };
-    return new Module(registry as FlattenUnion<R & { [K in T]: { resolve: RF, deps: [...D] } }>);
+    return new Module(registry as Union<R & { [K in T]: { factory: RF, inject: [...D] } }>);
   }
 
-  addClass<T extends DIToken, D extends (keyof R)[], V, Rfn extends Resolve<R, D, V>>(
+  provideClass<T extends Token, D extends (keyof R)[], V, Rfn extends Factory<R, D, V>>(
     token: T,
     deps: [...D],
     ctor: Ctor<R, D, V>
-  ): Module<FlattenUnion<R & { [K in T]: { resolve: Rfn, deps: [...D] } }>> {
-    const resolve = (...args: ResolvedDeps<R,D>) => Promise.resolve<V>(new ctor(...args));
-    const registry: unknown = {
-      ...this.registry,
-      [token]: { resolve, deps }
+  ): Module<Union<R & { [K in T]: { factory: Rfn, inject: [...D] } }>> {
+    const factory = (...args: FactoryArgs<R, D>) => Promise.resolve<V>(new ctor(...args));
+    // @ts-ignore
+    const def: { [K in T]: { factory: Rfn, inject: [...D] } } = {
+      [token]: { factory, inject: deps }
     };
-    return new Module(registry as FlattenUnion<R & { [K in T]: { resolve: Rfn, deps: [...D] } }>);
+    const registry = merge(this.registry, def);
+    return new Module(registry);
   }
 
-  async get<T extends keyof R>(token: T): Promise<ResolveType<R[T]['resolve']>> {
-    const { resolve, deps } = this.registry[token];
-    const inject = await Promise.all(deps.map(dep => this.get(dep)));
-    const instance = await resolve(...inject);
+  async resolve<T extends keyof R>(token: T): Promise<FactoryType<R[T]['factory']>> {
+    const item = this.registry[token];
+    if (item === undefined) {
+      throw new NotFoundError(`Thre is no declaration for "${token.toString()}" found`);
+    }
+    const { factory, inject } = this.registry[token];
+    const args = await Promise.all(inject.map(t => this.resolve(t)));
+    const instance = await factory(...args);
     return instance;
   }
 
-  get [RegistryProperty]() {
+  get [registryProperty](): R {
     return this.registry;
   }
 
-  // TODO: get rid of ts-ignore
   // @ts-ignore
-  merge<R2>(module: DIContainer<R2>): Module<Merge<R, R2>> {
-    const registry: Merge<R, R2> = {
-      ...this.registry,
-      ...module[RegistryProperty]
-    };
+  import<R2>(module: Container<R2>): Module<Union<Join<R, R2>>> {
+    const importRegistry = module[registryProperty];
+    const registry = merge(this.registry, importRegistry);
     return new Module(registry);
   }
 }
