@@ -1,6 +1,7 @@
 /src/
 /node_modules/
+/scripts/
 /README.md
 /jest.config.js
-/tsconfig.json
+/tsconfig.*.json
 /.gitignore
