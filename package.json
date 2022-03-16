@@ -5,13 +5,14 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
-    "build": "tsc",
+    "prebuild": "rm -rf ./lib",
+    "build": "tsc --project tsconfig.cjs.json && tsc --project tsconfig.esm.json",
     "prepublish": "NODE_ENV=production tsc --project tsconfig.json"
   },
   "author": "Taras Kustov <tkusto@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@tsconfig/node16": "^1.0.2",
+    "@tsconfig/recommended": "^1.0.1",
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.10",
     "jest": "^27.5.1",
