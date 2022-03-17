@@ -1,5 +1,6 @@
-import { Module } from './Module';
+import { Container } from './Container';
 
-export { Module };
+export { Container };
 export { NotFoundError } from './errors';
-export const module = new Module({});
+export const root = new Container({});
+export default root;

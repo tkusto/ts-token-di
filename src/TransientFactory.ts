@@ -1,4 +1,4 @@
-import { Container, Factory, InjectArgs, Registry } from './types';
+import { DIContainer, Factory, InjectArgs, Registry } from './types';
 
 export class TransientFactory<R extends Registry, D extends (keyof R)[], V>
   implements Factory<R, V>
@@ -8,7 +8,7 @@ export class TransientFactory<R extends Registry, D extends (keyof R)[], V>
     private inject: D
   ) {}
 
-  async create(container: Container<R>): Promise<V> {
+  async create(container: DIContainer<R>): Promise<V> {
     // @ts-ignore
     const args: InjectArgs<R, D> = await Promise.all(
       this.inject.map(token => container.resolve(token))
