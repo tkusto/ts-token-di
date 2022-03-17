@@ -1,6 +1,6 @@
 {
   "name": "@tkustov/ts-token-di",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript token-based DI lib",
   "main": "./lib/cjs/index.js",
   "scripts": {

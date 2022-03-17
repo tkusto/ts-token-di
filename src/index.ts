@@ -1,4 +1,4 @@
-import { Container } from './Module';
+import { Container } from './Container';
 
 export { Container };
 export { NotFoundError } from './errors';

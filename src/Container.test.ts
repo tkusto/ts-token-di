@@ -1,6 +1,6 @@
 import { Scope } from './constants';
 import { NotFoundError } from './errors';
-import { Container } from './Module';
+import { Container } from './Container';
 
 test('Should resolve instance w/o deps', async () => {
   const mod = new Container({})
