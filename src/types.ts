@@ -23,6 +23,12 @@ export interface Container<R extends Registry> {
     resolve: (...args: InjectArgs<R, D>) => Promise<V>
   ): Container<Union<R & { [K in T]: Factory<R, V> }>>;
 
+  provideSync<T extends Token, D extends (keyof R)[], V>(
+    token: T,
+    inject: [...D],
+    resolve: (...args: InjectArgs<R, D>) => V
+  ): Container<Union<R & { [K in T]: Factory<R, V> }>>;
+
   provideClass<T extends Token, D extends (keyof R)[], V>(
     token: T,
     inject: [...D],

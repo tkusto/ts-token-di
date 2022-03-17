@@ -25,13 +25,27 @@ export class Module<R extends Registry>
     return new Module(registry as Union<R & { [K in T]: Factory<R, V> }>);
   }
 
+  provideSync<T extends Token, D extends (keyof R)[], V>(
+    token: T,
+    inject: [...D],
+    resolve: (...args: InjectArgs<R, D>) => V,
+    scope?: Scope
+  ) {
+    return this.provide(
+      token,
+      inject,
+      (...args) => Promise.resolve<V>(resolve(...args)),
+      scope
+    );
+  }
+
   provideClass<T extends Token, D extends (keyof R)[], V>(
     token: T,
     inject: [...D],
     ctor: {
       new(...args: InjectArgs<R, D>): V
     },
-    scope: Scope = Scope.Singleton
+    scope?: Scope
   ) {
     return this.provide(
       token,

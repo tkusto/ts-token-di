@@ -22,6 +22,19 @@ test('Should resolve instance w/ deps', async () => {
   expect(c3).toBe('c1 c1 c2 c3');
 });
 
+test('Should resolve instance w/ deps provided by sync resolver', async () => {
+  const module = new Module({})
+    .provideSync('c1', [], () => 'c1')
+    .provideSync('c2', ['c1'], (c1) => `${c1} c2`)
+    .provideSync('c3', ['c1', 'c2'], (c1, c2) => `${c1} ${c2} c3`);
+  const [c2, c3] = await Promise.all([
+    module.resolve('c2'),
+    module.resolve('c3')
+  ]);
+  expect(c2).toBe('c1 c2');
+  expect(c3).toBe('c1 c1 c2 c3');
+});
+
 test('Should register and resolve class', async () => {
   class C2 {
     constructor(public c1: string) { }
