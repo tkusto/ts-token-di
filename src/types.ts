@@ -3,7 +3,7 @@ import { registryProperty } from './constants';
 export type Token = string | symbol;
 
 export interface Factory<R extends Registry, V> {
-  create(container: Container<R>): Promise<V>;
+  create(container: DIContainer<R>): Promise<V>;
 }
 
 export type FactoryResult<F> = F extends Factory<any, infer V> ? V : never;
@@ -16,18 +16,18 @@ export type InjectArgs<R extends Registry, D extends (keyof R)[]> = {
   [K in keyof D]: D[K] extends keyof R ? FactoryResult<R[D[K]]> : never;
 }
 
-export interface Container<R extends Registry> {
+export interface DIContainer<R extends Registry> {
   provide<T extends Token, D extends (keyof R)[], V>(
     token: T,
     inject: [...D],
     resolve: (...args: InjectArgs<R, D>) => Promise<V>
-  ): Container<Union<R & { [K in T]: Factory<R, V> }>>;
+  ): DIContainer<Union<R & { [K in T]: Factory<R, V> }>>;
 
   provideSync<T extends Token, D extends (keyof R)[], V>(
     token: T,
     inject: [...D],
     resolve: (...args: InjectArgs<R, D>) => V
-  ): Container<Union<R & { [K in T]: Factory<R, V> }>>;
+  ): DIContainer<Union<R & { [K in T]: Factory<R, V> }>>;
 
   provideClass<T extends Token, D extends (keyof R)[], V>(
     token: T,
@@ -35,11 +35,11 @@ export interface Container<R extends Registry> {
     ctor: {
       new(...args: InjectArgs<R, D>): V
     }
-  ): Container<Union<R & { [K in T]: Factory<R, V> }>>;
+  ): DIContainer<Union<R & { [K in T]: Factory<R, V> }>>;
 
   resolve<T extends keyof R>(token: T): Promise<FactoryResult<R[T]>>;
 
-  import<R2 extends Registry>(container: Container<R2>): Container<Union<Join<R, R2>>>;
+  import<R2 extends Registry>(container: DIContainer<R2>): DIContainer<Union<Join<R, R2>>>;
 
   readonly [registryProperty]: R;
 }
