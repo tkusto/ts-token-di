@@ -2,7 +2,7 @@ import { registryProperty, Scope } from './constants';
 import { NotFoundError } from './errors';
 import { SingletonFactory } from './SingletonFactory';
 import { TransientFactory } from './TransientFactory';
-import { Registry, DIContainer, Token, InjectArgs, Union, Factory, FactoryResult, Join } from './types';
+import type { Registry, DIContainer, Token, InjectArgs, Union, Factory, FactoryResult, Join } from './types';
 
 export class Container<R extends Registry>
   implements DIContainer<R>

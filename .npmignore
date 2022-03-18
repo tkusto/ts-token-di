@@ -1,4 +1,4 @@
-/src/
+/src/**.test.ts
 /node_modules/
 /scripts/
 /README.md

@@ -2,4 +2,3 @@
 
 npx -c "tsc --project tsconfig.cjs.json"
 npx -c "tsc --project tsconfig.esm.json"
-npx -c "tsc --project tsconfig.types.json"

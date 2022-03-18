@@ -99,3 +99,12 @@ test('Should return different instance for Scope.Transient', async () => {
   ]);
   expect(c2.c1).not.toBe(c3.c1);
 });
+
+test('Should support definitions override', async () => {
+  const mod = new Container({})
+    .provideSync('c1', [], () => 'c1')
+    .provideSync('c2', ['c1'], (c1) => `${c1} c2`)
+    .provideSync('c1', [], () => 'c?');
+  const c2 = await mod.resolve('c2');
+  expect(c2).toBe('c? c2');
+});
