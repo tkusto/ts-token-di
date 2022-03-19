@@ -1,6 +1,6 @@
 {
   "name": "@tkustov/ts-token-di",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "TypeScript token-based DI lib",
   "main": "./lib/cjs/index.js",
   "scripts": {
@@ -22,14 +22,14 @@
   "types": "./src/index.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tkusto/ts-token-di.git"
+    "url": "git+https://github.com/tkustov/ts-token-di.git"
   },
   "keywords": [
     "typescript",
     "di"
   ],
   "bugs": {
-    "url": "https://github.com/tkusto/ts-token-di/issues"
+    "url": "https://github.com/tkustov/ts-token-di/issues"
   },
-  "homepage": "https://github.com/tkusto/ts-token-di#README.md"
+  "homepage": "https://github.com/tkustov/ts-token-di#README.md"
 }
