@@ -65,6 +65,18 @@ export class Container<R extends Registry>
     return result;
   }
 
+  async inject<D extends (keyof R)[], V>(
+    tokens: [...D],
+    resolve: (...args: InjectArgs<R, D>) => Promise<V>
+  ): Promise<V> {
+    // @ts-ignore
+    const deps: InjectArgs<R, D> = await Promise.all(
+      tokens.map(token => this.resolve(token))
+    );
+    const value = await resolve(...deps);
+    return value;
+  }
+
   get [registryProperty](): R {
     return this.registry;
   }

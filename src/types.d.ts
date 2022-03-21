@@ -39,6 +39,11 @@ export interface DIContainer<R extends Registry> {
 
   resolve<T extends keyof R>(token: T): Promise<FactoryResult<R[T]>>;
 
+  inject<D extends (keyof R)[], V>(
+    tokens: [...D],
+    resolve: (...args: InjectArgs<R,D>) => Promise<V>
+  ): Promise<V>;
+
   import<R2 extends Registry>(container: DIContainer<R2>): DIContainer<Union<Join<R, R2>>>;
 
   readonly [registryProperty]: R;

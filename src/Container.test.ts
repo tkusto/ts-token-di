@@ -108,3 +108,11 @@ test('Should support definitions override', async () => {
   const c2 = await mod.resolve('c2');
   expect(c2).toBe('c? c2');
 });
+
+test('Should inject deps to resolver function', async () => {
+  const mod = new Container({})
+    .provideSync('c1', [], () => 'c1')
+    .provideSync('c2', ['c1'], (c1) => `${c1} c2`);
+  const message = await mod.inject(['c1', 'c2'], async (c1, c2) => Promise.resolve(`${c1} ${c2} message`));
+  expect(message).toBe('c1 c1 c2 message');
+});
