@@ -39,7 +39,7 @@ export interface DIContainer<R extends Registry> {
 
   resolve<T extends keyof R>(token: T): Promise<FactoryResult<R[T]>>;
 
-  inject<D extends (keyof R)[], V>(
+  run<D extends (keyof R)[], V>(
     tokens: [...D],
     resolve: (...args: InjectArgs<R,D>) => Promise<V>
   ): Promise<V>;

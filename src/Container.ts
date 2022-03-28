@@ -65,7 +65,7 @@ export class Container<R extends Registry>
     return result;
   }
 
-  async inject<D extends (keyof R)[], V>(
+  async run<D extends (keyof R)[], V>(
     tokens: [...D],
     resolve: (...args: InjectArgs<R, D>) => Promise<V>
   ): Promise<V> {
