@@ -2,97 +2,81 @@ import { registryProperty, Scope } from './constants';
 import { NotFoundError } from './errors';
 import { SingletonFactory } from './SingletonFactory';
 import { TransientFactory } from './TransientFactory';
-import type { Registry, DIContainer, Token, InjectArgs, Union, Factory, FactoryResult, Join } from './types';
+import type { Registry, DIContainer, Token, InjectArgs, Union, TokenMap } from './types';
 
-export class Container<R extends Registry>
-  implements DIContainer<R>
-{
+export class Container<M extends TokenMap> implements DIContainer<M> {
   constructor(
-    private readonly registry: R
+    private registry: Registry<M>
   ) { }
 
-  provide<T extends Token, D extends (keyof R)[], V>(
+  provide<T extends Token, D extends Token[], R>(
     token: T,
-    inject: [...D],
-    resolve: (...args: InjectArgs<R, D>) => Promise<V>,
+    inject: D,
+    resolve: (...args: InjectArgs<M, D>) => Promise<R>,
     scope: Scope = Scope.Singleton
-  ): Container<Union<R & { [K in T]: Factory<R, V> }>> {
+  ): DIContainer<Union<M & { [K in T]: R; }>> {
     const factory = this.createFactory(scope, resolve, inject);
-    const registry: unknown = {
+    const registry: Registry<Union<M & { [K in T]: R; }>> = {
       ...this.registry,
       [token]: factory
     };
-    return new Container(registry as Union<R & { [K in T]: Factory<R, V> }>);
+    return new Container(registry);
   }
 
-  provideSync<T extends Token, D extends (keyof R)[], V>(
+  provideSync<T extends Token, D extends Token[], R>(
     token: T,
     inject: [...D],
-    resolve: (...args: InjectArgs<R, D>) => V,
-    scope?: Scope
-  ) {
-    return this.provide(
-      token,
-      inject,
-      (...args) => Promise.resolve<V>(resolve(...args)),
-      scope
-    );
+    resolve: (...args: InjectArgs<M, D>) => R,
+    scope: Scope = Scope.Singleton
+  ): DIContainer<Union<M & { [K in T]: R; }>> {
+    return this.provide(token, inject, (...args) => Promise.resolve(resolve(...args)), scope);
   }
 
-  provideClass<T extends Token, D extends (keyof R)[], V>(
+  provideConst<T extends Token, R>(token: T, value: R): DIContainer<Union<M & { [K in T]: R; }>> {
+    return this.provide(token, [], () => Promise.resolve(value), Scope.Singleton);
+  }
+
+  provideClass<T extends Token, D extends Token[], R>(
     token: T,
     inject: [...D],
-    ctor: {
-      new(...args: InjectArgs<R, D>): V
-    },
-    scope?: Scope
-  ) {
-    return this.provide(
-      token,
-      inject,
-      (...args) => Promise.resolve<V>(new ctor(...args)),
-      scope
-    );
+    ctor: new (...args: any[]) => R,
+    scope: Scope = Scope.Singleton
+  ): DIContainer<Union<M & { [K in T]: R; }>> {
+    return this.provide(token, inject, (...args) => Promise.resolve(new ctor(...args)), scope);
   }
 
-  async resolve<T extends keyof R>(token: T): Promise<FactoryResult<R[T]>> {
+  async resolve<T extends keyof M>(token: T): Promise<M[T]> {
     const factory = this.registry[token];
     if (!factory) {
       throw new NotFoundError(String(token));
     }
-    // @ts-ignore
     const result = await factory.create(this);
     return result;
   }
 
-  async run<D extends (keyof R)[], V>(
-    tokens: [...D],
-    resolve: (...args: InjectArgs<R, D>) => Promise<V>
-  ): Promise<V> {
+  async run<D extends (keyof M)[], R>(inject: [...D], fn: (...args: InjectArgs<M, D>) => Promise<R>): Promise<R> {
     // @ts-ignore
-    const deps: InjectArgs<R, D> = await Promise.all(
-      tokens.map(token => this.resolve(token))
-    );
-    const value = await resolve(...deps);
-    return value;
+    const args: InjectArgs<M, D> = await Promise.all(inject.map(token => this.resolve(token)));
+    const result = await fn(...args);
+    return result;
   }
 
-  get [registryProperty](): R {
+  import<M2>(container: DIContainer<M2>): DIContainer<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> {
+    const registry: Registry<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> = {
+      ...this.registry,
+      ...container[registryProperty]
+    };
+    return new Container(registry);
+  }
+
+  get [registryProperty](): Registry<M> {
     return this.registry;
   }
 
-  import<R2 extends Registry>(importModule: DIContainer<R2>): Container<Union<Join<R, R2>>> {
-    const registry: unknown = {
-      ...this.registry,
-      ...importModule[registryProperty]
-    };
-    return new Container(registry as Union<Join<R, R2>>);
-  }
-
-  private createFactory<D extends (keyof R)[], V>(
+  private createFactory<V>(
     scope: Scope,
-    resolve: (...args: InjectArgs<R, D>) => Promise<V>,
-    inject: [...D],
+    resolve: (...args: any) => Promise<V>,
+    inject: Token[],
   ) {
     switch (scope) {
       case Scope.Singleton:
