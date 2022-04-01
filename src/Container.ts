@@ -39,7 +39,7 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
   provideClass<T extends Token, D extends Token[], R>(
     token: T,
     inject: [...D],
-    ctor: new (...args: any[]) => R,
+    ctor: new (...args: InjectArgs<M, D>) => R,
     scope: Scope = Scope.Singleton
   ): DIContainer<Union<M & { [K in T]: R; }>> {
     return this.provide(token, inject, (...args) => Promise.resolve(new ctor(...args)), scope);

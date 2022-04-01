@@ -15,7 +15,7 @@ export type Registry<M extends TokenMap> = {
 }
 
 export type InjectArgs<M extends TokenMap, D extends (keyof M)[]> = {
-  [K in (keyof D)]: D[K] extends keyof M ? M[D[K]]: never;
+  [K in (keyof D)]: D[K] extends keyof M ? M[D[K]] : never;
 }
 
 export interface DIContainer<M extends TokenMap> {
@@ -42,14 +42,14 @@ export interface DIContainer<M extends TokenMap> {
     token: T,
     inject: [...D],
     ctor: {
-      new (...args: any[]): R
+      new(...args: InjectArgs<M, D>): R
     },
     scope?: Scope
   ): DIContainer<Union<M & { [K in T]: R }>>;
 
   resolve<T extends keyof M>(token: T): Promise<M[T]>;
 
-  run<D extends (keyof M)[], R>(inject: [...D], fn: (...args: InjectArgs<M, D>) => Promise<R>): Promise<R>; 
+  run<D extends (keyof M)[], R>(inject: [...D], fn: (...args: InjectArgs<M, D>) => Promise<R>): Promise<R>;
 
   import<M2>(container: DIContainer<M2>): DIContainer<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>>;
 
