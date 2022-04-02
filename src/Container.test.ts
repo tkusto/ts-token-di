@@ -134,7 +134,10 @@ describe('Container', () => {
   });
 
   test('Should handle deep imports', async () => {
-    const mod1 = new Container({}).provideConst('m1', 'mod1');
+    class C1 {
+      constructor(public msg: string) {}
+    }
+    const mod1 = new Container({}).provideConst('m1', 'mod1').provideClass('c1', ['m1'], C1);
     const mod2 = new Container({}).import(mod1).provideConst('m2', 'mod2');
     const mod3 = new Container({}).import(mod1).import(mod2);
     const mod4 = new Container({}).import(mod1).import(mod2).import(mod3);
@@ -142,7 +145,24 @@ describe('Container', () => {
       .import(mod4)
       .provideSync('m5', ['m1', 'm2'], (m1, m2) => `${m1}, ${m2}`);
     const m5 = await mod5.resolve('m5');
+    const c1 = await mod5.resolve('c1');
     expect(m5).toBe('mod1, mod2');
+  });
+
+  test('Should have ability to run code with deps injected', async () => {
+    class C1 {
+      constructor(public msg: string) {}
+    }
+    const mod1 = new Container({}).provideConst('m1', 'mod1').provideClass('c1', ['m1'], C1);
+    const mod2 = new Container({}).import(mod1).provideConst('m2', 'mod2');
+    const mod3 = new Container({}).import(mod1).import(mod2);
+    const mod4 = new Container({}).import(mod1).import(mod2).import(mod3);
+    const mod5 = new Container({})
+      .import(mod4)
+      .provideSync('m5', ['m1', 'm2'], (m1, m2) => `${m1}, ${m2}`);
+    await mod5.run(['c1'], async (c1) => {
+      expect(c1.msg).toBe('mod1');
+    });
   });
 
 });

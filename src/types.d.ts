@@ -2,9 +2,9 @@ import { registryProperty, Scope } from './constants';
 
 export type Token = string | symbol;
 
-export interface TokenMap {
-  [token: Token]: any;
-}
+type TokenMap = {
+  [key: Token]: any;
+};
 
 export interface Factory<R> {
   create(container: DIContainer<TokenMap>): Promise<R>;
@@ -19,17 +19,17 @@ export type InjectArgs<M extends TokenMap, D extends (keyof M)[]> = {
 }
 
 export interface DIContainer<M extends TokenMap> {
-  provide<T extends Token, D extends Token[], R>(
+  provide<T extends Token, D extends (keyof M)[], R>(
     token: T,
     inject: [...D],
-    resolve: (...args: InjectArgs<M, D>) => Promise<R>,
+    resolve: (...args: InjectArgs<M, [...D]>) => Promise<R>,
     scope?: Scope
   ): DIContainer<Union<M & { [K in T]: R }>>;
 
-  provideSync<T extends Token, D extends Token[], R>(
+  provideSync<T extends Token, D extends (keyof M)[], R>(
     token: T,
     inject: [...D],
-    resolve: (...args: InjectArgs<M, D>) => R,
+    resolve: (...args: InjectArgs<M, [...D]>) => R,
     scope?: Scope
   ): DIContainer<Union<M & { [K in T]: R }>>;
 
@@ -38,11 +38,11 @@ export interface DIContainer<M extends TokenMap> {
     value: R
   ): DIContainer<Union<M & { [K in T]: R }>>;
 
-  provideClass<T extends Token, D extends Token[], R>(
+  provideClass<T extends Token, D extends (keyof M)[], R>(
     token: T,
     inject: [...D],
     ctor: {
-      new(...args: InjectArgs<M, D>): R
+      new(...args: InjectArgs<M, [...D]>): R
     },
     scope?: Scope
   ): DIContainer<Union<M & { [K in T]: R }>>;

@@ -9,10 +9,10 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     private registry: Registry<M>
   ) { }
 
-  provide<T extends Token, D extends Token[], R>(
+  provide<T extends Token, D extends (keyof M)[], R>(
     token: T,
     inject: D,
-    resolve: (...args: InjectArgs<M, D>) => Promise<R>,
+    resolve: (...args: InjectArgs<M, [...D]>) => Promise<R>,
     scope: Scope = Scope.Singleton
   ): DIContainer<Union<M & { [K in T]: R; }>> {
     const factory = this.createFactory(scope, resolve, inject);
@@ -23,10 +23,10 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     return new Container(registry);
   }
 
-  provideSync<T extends Token, D extends Token[], R>(
+  provideSync<T extends Token, D extends (keyof M)[], R>(
     token: T,
     inject: [...D],
-    resolve: (...args: InjectArgs<M, D>) => R,
+    resolve: (...args: InjectArgs<M, [...D]>) => R,
     scope: Scope = Scope.Singleton
   ): DIContainer<Union<M & { [K in T]: R; }>> {
     return this.provide(token, inject, (...args) => Promise.resolve(resolve(...args)), scope);
@@ -36,10 +36,10 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     return this.provide(token, [], () => Promise.resolve(value), Scope.Singleton);
   }
 
-  provideClass<T extends Token, D extends Token[], R>(
+  provideClass<T extends Token, D extends (keyof M)[], R>(
     token: T,
     inject: [...D],
-    ctor: new (...args: InjectArgs<M, D>) => R,
+    ctor: new (...args: InjectArgs<M, [...D]>) => R,
     scope: Scope = Scope.Singleton
   ): DIContainer<Union<M & { [K in T]: R; }>> {
     return this.provide(token, inject, (...args) => Promise.resolve(new ctor(...args)), scope);
@@ -54,9 +54,9 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     return result;
   }
 
-  async run<D extends (keyof M)[], R>(inject: [...D], fn: (...args: InjectArgs<M, D>) => Promise<R>): Promise<R> {
+  async run<D extends (keyof M)[], R>(inject: [...D], fn: (...args: InjectArgs<M, [...D]>) => Promise<R>): Promise<R> {
     // @ts-ignore
-    const args: InjectArgs<M, D> = await Promise.all(inject.map(token => this.resolve(token)));
+    const args: InjectArgs<M, [...D]> = await Promise.all(inject.map(token => this.resolve(token)));
     const result = await fn(...args);
     return result;
   }
@@ -76,7 +76,7 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
   private createFactory<V>(
     scope: Scope,
     resolve: (...args: any) => Promise<V>,
-    inject: Token[],
+    inject: any[],
   ) {
     switch (scope) {
       case Scope.Singleton:
