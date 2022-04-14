@@ -1,5 +1,5 @@
-import { Scope } from './constants';
-import { NotFoundError } from './errors';
+import { Scope } from '../constants';
+import { NotFoundError } from '../errors';
 import { Container } from './Container';
 
 describe('Container', () => {
@@ -147,6 +147,7 @@ describe('Container', () => {
     const m5 = await mod5.resolve('m5');
     const c1 = await mod5.resolve('c1');
     expect(m5).toBe('mod1, mod2');
+    expect(c1.msg).toBe('mod1');
   });
 
   test('Should have ability to run code with deps injected', async () => {

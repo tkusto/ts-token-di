@@ -1,12 +1,13 @@
-import { registryProperty, Scope } from './constants';
-import { NotFoundError } from './errors';
+import { registryProperty, Scope } from '../constants';
+import { NotFoundError } from '../errors';
+import type { Token, InjectArgs, Union, TokenMap } from '../types';
+import type { RegistryAsync } from './types';
 import { SingletonFactory } from './SingletonFactory';
 import { TransientFactory } from './TransientFactory';
-import type { Registry, DIContainer, Token, InjectArgs, Union, TokenMap } from './types';
 
-export class Container<M extends TokenMap> implements DIContainer<M> {
+export class Container<M extends TokenMap> {
   constructor(
-    private registry: Registry<M>
+    private registry: RegistryAsync<M>
   ) { }
 
   provide<T extends Token, D extends (keyof M)[], R>(
@@ -14,9 +15,9 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     inject: D,
     resolve: (...args: InjectArgs<M, [...D]>) => Promise<R>,
     scope: Scope = Scope.Singleton
-  ): DIContainer<Union<M & { [K in T]: R; }>> {
+  ): Container<Union<M & { [K in T]: R; }>> {
     const factory = this.createFactory(scope, resolve, inject);
-    const registry: Registry<Union<M & { [K in T]: R; }>> = {
+    const registry: RegistryAsync<Union<M & { [K in T]: R; }>> = {
       ...this.registry,
       [token]: factory
     };
@@ -28,11 +29,11 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     inject: [...D],
     resolve: (...args: InjectArgs<M, [...D]>) => R,
     scope: Scope = Scope.Singleton
-  ): DIContainer<Union<M & { [K in T]: R; }>> {
+  ): Container<Union<M & { [K in T]: R; }>> {
     return this.provide(token, inject, (...args) => Promise.resolve(resolve(...args)), scope);
   }
 
-  provideConst<T extends Token, R>(token: T, value: R): DIContainer<Union<M & { [K in T]: R; }>> {
+  provideConst<T extends Token, R>(token: T, value: R): Container<Union<M & { [K in T]: R; }>> {
     return this.provide(token, [], () => Promise.resolve(value), Scope.Singleton);
   }
 
@@ -41,7 +42,7 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     inject: [...D],
     ctor: new (...args: InjectArgs<M, [...D]>) => R,
     scope: Scope = Scope.Singleton
-  ): DIContainer<Union<M & { [K in T]: R; }>> {
+  ): Container<Union<M & { [K in T]: R; }>> {
     return this.provide(token, inject, (...args) => Promise.resolve(new ctor(...args)), scope);
   }
 
@@ -61,15 +62,15 @@ export class Container<M extends TokenMap> implements DIContainer<M> {
     return result;
   }
 
-  import<M2>(container: DIContainer<M2>): DIContainer<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> {
-    const registry: Registry<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> = {
+  import<M2>(container: Container<M2>): Container<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> {
+    const registry: RegistryAsync<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> = {
       ...this.registry,
       ...container[registryProperty]
     };
     return new Container(registry);
   }
 
-  get [registryProperty](): Registry<M> {
+  get [registryProperty](): RegistryAsync<M> {
     return this.registry;
   }
 

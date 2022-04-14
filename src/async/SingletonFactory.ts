@@ -1,7 +1,8 @@
-import { noInstance } from './constants';
-import { DIContainer, Factory, Token, TokenMap } from './types';
+import { noInstance } from '../constants';
+import { Token, TokenMap } from '../types';
+import { AsyncResolver, FactoryAsync } from './types';
 
-export class SingletonFactory<V> implements Factory<V>
+export class SingletonFactory<V> implements FactoryAsync<V>
 {
   private instance: Promise<V> | typeof noInstance = noInstance;
 
@@ -10,7 +11,7 @@ export class SingletonFactory<V> implements Factory<V>
     private inject: Token[],
   ) { }
 
-  async create(container: DIContainer<TokenMap>): Promise<V> {
+  async create(container: AsyncResolver<TokenMap>): Promise<V> {
     if (this.instance === noInstance) {
       this.instance = Promise
         .all(this.inject.map(token => container.resolve(token)))
