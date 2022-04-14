@@ -5,7 +5,7 @@ import type { RegistryAsync } from './types';
 import { SingletonFactory } from './SingletonFactory';
 import { TransientFactory } from './TransientFactory';
 
-export class Container<M extends TokenMap> {
+export class Container<M extends {}> {
   constructor(
     private registry: RegistryAsync<M>
   ) { }
@@ -17,6 +17,7 @@ export class Container<M extends TokenMap> {
     scope: Scope = Scope.Singleton
   ): Container<Union<M & { [K in T]: R; }>> {
     const factory = this.createFactory(scope, resolve, inject);
+    // @ts-ignore
     const registry: RegistryAsync<Union<M & { [K in T]: R; }>> = {
       ...this.registry,
       [token]: factory
@@ -51,6 +52,7 @@ export class Container<M extends TokenMap> {
     if (!factory) {
       throw new NotFoundError(String(token));
     }
+    // @ts-ignore
     const result = await factory.create(this);
     return result;
   }
@@ -62,7 +64,10 @@ export class Container<M extends TokenMap> {
     return result;
   }
 
-  import<M2>(container: Container<M2>): Container<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> {
+  import<M2>(
+    container: Container<M2>
+  ): Container<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> {
+    // @ts-ignore
     const registry: RegistryAsync<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> = {
       ...this.registry,
       ...container[registryProperty]

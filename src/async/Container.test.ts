@@ -55,6 +55,7 @@ describe('Container', () => {
     const mod = new Container({})
       .provide('c1', [], () => Promise.resolve('c1'));
     expect(
+      // @ts-expect-error
       mod.resolve('c2')
         .catch((error) => Promise.reject(
           error instanceof NotFoundError

@@ -5,7 +5,7 @@ import type { FactorySync, RegistrySync } from './types';
 import { SingletonFactory } from './SingletonFactory';
 import { TransientFactory } from './TransientFactory';
 
-export class ContainerSync<M extends TokenMap> {
+export class ContainerSync<M extends {}> {
   constructor(
     private registry: RegistrySync<M>
   ) {}
@@ -17,6 +17,7 @@ export class ContainerSync<M extends TokenMap> {
     scope: Scope = Scope.Singleton
   ): ContainerSync<Union<M & { [K in T]: R; }>> {
     const factory = this.createFactory(scope, resolve, inject);
+    // @ts-ignore
     const registry: RegistrySync<Union<M & { [K in T]: R; }>> = {
       ...this.registry,
       [token]: factory
@@ -42,6 +43,7 @@ export class ContainerSync<M extends TokenMap> {
     if (!factory) {
       throw new NotFoundError(String(token));
     }
+    // @ts-ignore
     const result = factory.create(this);
     // @ts-ignore
     return result;
@@ -60,6 +62,7 @@ export class ContainerSync<M extends TokenMap> {
   import<M2>(
     container: ContainerSync<M2>
   ): ContainerSync<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> {
+    // @ts-ignore
     const registry: RegistrySync<Union<{ [KA in Exclude<keyof M, keyof M2>]: M[KA]; } & { [KB in keyof M2]: M2[KB]; }>> = {
       ...this.registry,
       ...container[registryProperty]

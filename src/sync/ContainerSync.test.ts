@@ -40,6 +40,7 @@ describe('ContainerSync', () => {
     const mod = new ContainerSync({})
       .provideSync('c1', [], () => 'c1');
     try {
+      // @ts-expect-error
       mod.resolve('c2');
     } catch (error) {
       expect(error).toBeInstanceOf(NotFoundError);

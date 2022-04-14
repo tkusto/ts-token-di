@@ -6,5 +6,8 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "declaration": false
-  }
+  },
+  "exclude": [
+    "./src/**.test.ts"
+  ]
 }
